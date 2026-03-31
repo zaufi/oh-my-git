@@ -1,0 +1,407 @@
+# SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+
+[core]
+    editor = mcedit +1
+    autocrlf = input
+    whitespace = tab-in-indent,tabwidth=4
+    # pager = bat --paging always --file-name Git
+
+[alias]
+    # BEGIN Shorter names for standard commands
+    # (sometimes similar to what was in `svn` ;-)
+    br = branch -vv
+    ci = commit
+    co = checkout
+    cp = cherry-pick
+    di = diff
+    st = status
+    # END Shorter names for standard commands
+
+    # BEGIN Shorter aliases for sub-commands with some of their options
+    # (Git-specific almost always ;-)
+    cl = clone --recursive
+    # `clone-shallow` -- same as `cl` but _shallow_ ;-)
+    cls = clone --recursive --depth 1 --shallow-submodules
+    # `signed-commit`, `commit-and-sign`
+    cs = commit -S
+    # `signed-commit-no-verify`
+    # (sometimes `pre-commit` takes too long, but the staged state is known to be good… ;-)
+    csnv = commit -S --no-verify
+    # `diff --word-diff`
+    diw = diff --word-diff
+    # `fetch-all`
+    fa = fetch --all --tags --prune --prune-tags
+    # `push --force`
+    fpush = push --force-with-lease --force-if-includes
+    # `log` (normal one)
+    lg = log --pretty=quick --date=auto:human --graph
+    # `log-pretty` -- actually it's a more detailed log w/ changes (doesn't relate to pretty directly anymore)
+    lgp = log --pretty=fullDiff --stat -p --date=auto:human --minimal
+    # `prune-worktree`
+    prwt = worktree prune
+    # `rebase-abort`
+    rba = rebase --abort
+    # `rebase-continue`
+    rbc = rebase --continue
+    # `rebase-signed`
+    rbs = rebase -S
+    # `rebase-signed-interactive`
+    rbsi = rebase -S -i
+    # `reset-hard`
+    rh = reset --hard
+    # `staged-diff`
+    sdi = diff --staged
+    sub = submodule
+    # Remove file(s) from stage
+    unstage = reset HEAD --
+    sw = switch
+    swn = switch -c
+    who = shortlog -sne
+    wt = worktree
+    # END Shorter alases for sub-commands with some of their options
+
+    # BEGIN Frequently used complex commands
+    # -----------------------------
+    # `clone-main` / `clone-master`
+    # -----------------------------
+    #   Clones a given repository URL into the `<project>/main/` (or `<project>/master/`) dir,
+    #   so later other branches (as worktrees) can be siblings of it.
+    clm = "!f() {                                           \
+        r="$1";                                             \
+        bn=master;                                          \
+        d=${2:-$(basename "${r//:/\\/}" .git)};             \
+        git clone --recursive "$r" "$d/$bn"                 \
+          || exit $?;                                       \
+        _bn=$(git -C "$d/$bn" rev-parse --abbrev-ref HEAD); \
+        if [[ $_bn != $bn ]]; then                          \
+            mv "$d/$bn" "$d/$_bn";                          \
+            bn=$_bn;                                        \
+        fi;                                                 \
+        cd "$d/$bn";                                        \
+        test -f .pre-commit-config.yaml                     \
+          && pre-commit install                             \
+          || true;                                          \
+    }; f"
+    # ----------------------------
+    # `commit-signed-last-message`
+    # ----------------------------
+    #   Same as `cs` but uses the last message file.
+    #   Helpful when `gitlint` fails after you edit a commit message and you just want to fix it.
+    cslm = !git commit -S --edit --file $(git rev-parse --git-path COMMIT_EDITMSG)
+    # ------
+    # `urls`
+    # ------
+    #   Lists configured _remotes_.
+    urls = "!git remote show                                \
+      | while read f; do                                    \
+            printf '⚫ %-10s → ' ${f}                       \
+              && git remote get-url --all ${f};             \
+        done"
+    # ---------
+    # `aliases`
+    # ---------
+    #   Lists configured Git aliases.
+    aliases = "!git config --get-regexp alias | sed 's, \\+, ,g'"
+    # ------
+    # `root`
+    # ------
+    #   Shows the root directory of the current repository. Can be used in one-liners.
+    root = rev-parse --show-toplevel
+    # ------------
+    # `amend-last`
+    # ------------
+    #   Adds the current stage to the last commit.
+    amend-last = commit -S --amend -C HEAD
+    # ------------
+    # `edit-last`
+    # ------------
+    #   Adds the current stage to the last commit and lets the user
+    #   improve commit message wording.
+    edit-last = commit -S --amend
+    # -----------------
+    # `push-new-branch`
+    # -----------------
+    #   Pushes the current branch to the `origin` remote (most likely the main one)
+    #   and sets local tracking of it.
+    push-new-branch = !git push -u origin $(git symbolic-ref --short HEAD)
+    # -------------
+    # `url-aliases`
+    # -------------
+    #   Shows the list of configured URL shorteners
+    #   (`insteadOf` keys of `url` sections of Git configuration file(s)).
+    url-aliases = "!git config --get-regexp '\\.insteadof'  \
+      | sed                                                 \
+          -e 's,\\([^ ]\\+\\) \\(.*\\)$,\\2 → \\1,'         \
+          -e 's,url\\.,,' -e 's,git@,ssh://,'               \
+          -e 's,\\.insteadof$,,'                            \
+      | column -t -s' '                                     \
+      "
+    # ---------------
+    # `ls-extensions`
+    # ---------------
+    #   Shows the list of file extensions of all files in the repository.
+    ls-extensions = "!git ls-files --format='%(path)'       \
+      | sed                                                 \
+          -e 's,.*/\\(.*\\)$,\\1,'                          \
+          -e 's,^[^\\.]\\+,,'                               \
+      | sort -u                                             \
+      | grep -Ev '^\\.?$'                                   \
+      "
+    # --------------
+    # `worktree-add`
+    # --------------
+    #   Checks out an existing branch as a separate worktree.
+    #   Submodules are also initialized.
+    worktree-add = "!f() {                                  \
+        if [[ -d .git ]]; then                              \
+            d='../';                                        \
+        elif [[ -f .git ]]; then                            \
+            d=$(< .git);                                    \
+            d=$(                                            \
+                dirname $(                                  \
+                    sed                                     \
+                      -e 's,gitdir: ,,'                     \
+                      -e 's,/.git.*,,'                      \
+                      <<<$d                                 \
+                  )                                         \
+              )/;                                           \
+        fi;                                                 \
+        if [[ -n $d ]]; then                                \
+            git worktree add $d$1 $1;                       \
+            cd $d$1;                                        \
+            if [[ -f .gitsubmodules ]]; then                \
+                git submodule update --init;                \
+            fi;                                             \
+        fi;                                                 \
+    }; f"
+    wta = worktree-add                                      # Shorter "legacy" alias
+    # -----------------
+    # `worktree-branch`
+    # -----------------
+    #   Creates a new branch and immediately checks it out as a separate worktree.
+    #   Submodules are also initialized.
+    worktree-branch = "!f() {                               \
+        if [[ -d .git ]]; then                              \
+            d='../';                                        \
+        elif [[ -f .git ]]; then                            \
+            d=$(< .git);                                    \
+            d=$(                                            \
+                dirname $(                                  \
+                    sed                                     \
+                        -e 's,gitdir: ,,'                   \
+                        -e 's,/.git.*,,'                    \
+                        <<<$d                               \
+                  )                                         \
+              )/;                                           \
+        fi;                                                 \
+        if [[ -n $d ]]; then                                \
+            git worktree add -b $1 $d$1;                    \
+            cd $d$1;                                        \
+            if [[ -f .gitsubmodules ]]; then                \
+                git submodule update --init;                \
+            fi;                                             \
+        fi;                                                 \
+    }; f"
+    wtb = worktree-branch                                   # Shorter "legacy" alias
+    # -----------------
+    # `prune-branches`
+    # -----------------
+    #   Remove stale^W already merged branches from the local repo.
+    prune-branches = !git remote prune origin               \
+     && git branch -vv                                      \
+      | grep ': gone]'                                      \
+      | grep -v '^+'                                        \
+      | awk '{print $1}'                                    \
+      | xargs -r git branch -D
+    prb = prune-branches                                    # Shorter "legacy" alias
+    # END Frequently used complex commands
+
+    # BEGIN Others not documented yet
+    # (… candidates for rename or remove ;-)
+    fxs = "!f() { \
+        git commit -S --fixup=${@: -1} ${@:1:$#-1} \
+     && git rebase -S -i --autosquash ${@: -1}^; \
+    }; f"
+    # END Others not documented yet
+
+[blame]
+    coloring = highlightRecent
+
+[branch]
+    autosetupmerge = always
+    autosetuprebase = always
+
+[checkout]
+    workers = 4
+
+[color]
+    advice = auto
+    branch = auto
+    diff = auto
+    grep = auto
+    interactive = auto
+    pager = true
+    showBranch = auto
+    status = auto
+    ui = true
+
+[color "advice"]
+    hint = "#0f7465" "" italic
+
+[color "blame"]
+    repeatedLines = "#18bda4"
+    highlightRecent = \
+        "#505050", 1.year.ago \
+      , "#655a56", 6.months.ago \
+      , "#7b645c", 3.months.ago \
+      , "#916e62", 2.months.ago \
+      , "#a77868", 1.month.ago \
+      , "#bd826e", 3.weeks.ago \
+      , "#d38c74", 2.weeks.ago \
+      , "#e9967a", 1.week.ago \
+      , "#ffa080", 3.days.ago \
+      , "#ff9880", 2.days.ago\
+      , "#ff9080", 1.day.ago \
+      , "#ff8880", 12.hours.ago \
+      , "#ff8080", 6.hours.ago \
+      , "#ff7880", 3.hours.ago \
+      , "#ff7080", 2.hours.ago \
+      , "#ff6880", 1.hour.ago \
+      , "#ff6080"
+
+[color "branch"]
+    current = "#ffff20" "" italic bold
+    local = "#e0a040"
+    remote = "#8040e0"
+    upstream = "#328cad" "" italic
+    plain = "#808080"
+
+[color "decorate"]
+    branch = "#e0a040"
+    remoteBranch = "#8040e0"
+    tag = "#b060ff"
+    stash = "#30b0c0"
+    HEAD = "#e0a000"
+
+[color "diff"]
+    meta = "#328cad" "" italic
+    frag = "#b060ff" "" italic
+    func = "#6b41a7" "" italic
+    old = "#c05040"
+    new = "#20ff70"
+    commit = "#30b0c0"
+    whitespace = "" "#c05040"
+    oldMoved = "#c03060"
+    newMoved = "#50b060"
+    oldMovedDimmed = "#802030"
+    oldMovedAlternative = "#d05030"
+    oldMovedAlternativeDimmed = "#a03020"
+    newMovedDimmed = "#307040"
+    newMovedAlternative = "#70e0a0"
+    newMovedAlternativeDimmed = "#407050"
+
+[color "remote"]
+    hint = "#30b0c0"
+    warning = "#e08030"
+    error = "#d05030"
+    success = "#20ff70"
+
+[color "status"]
+    # header = "" ""
+    added = "#20ff70"
+    updated = "#20b070"
+    changed = "#c05040"
+    untracked = "#808080"
+    branch = "#ffff20" "" italic bold
+    nobranch = "#555522"
+    localBranch = "#e08030"
+    remoteBranch = "#8040e0"
+    unmerged = "#d05030"
+
+[column]
+    ui = never
+
+[commit]
+    verbose = 1
+
+[diff]
+    colorMoved = dimmed_zebra
+    guitool = kdiff3
+    renames = copy
+    submodule = log
+    wsErrorHighlight = all
+
+[fetch]
+    parallel = 0
+    prune = true
+    pruneTags = true
+
+[format]
+    pretty = oneline
+    signOff = true
+
+[grep]
+    column = true
+    lineNumber = true
+    extendedRegexp = true
+
+[log]
+    abbrevCommit = true
+    graphColors = "#909090", "#00557f", "#550000", "#55557f", "#555500", "#aa5500", "#005500"
+    decorate = short
+    showNotes = true
+
+[merge]
+    guitool = kdiff3
+
+[pager]
+    branch = false
+    tag = false
+
+[pretty]
+    quick = format:%C("#884444")%h%Creset %Cblue%G?%Creset %C("#e0a000")%(decorate:tag=🏷 ,pointer= → ,prefix=,suffix=:)%Creset %s%>>|(-18)%C("#9040a0" "" italic)%aN%Creset%>>|(-1)%C("#55aa7f" "" italic)%ad%Creset
+    fullDiff = format:%C("normal" "#333333")----[ %C("#884444")%h%Creset%C("normal" "#333333") %Cblue%G?%Creset%C("normal" "#333333") %C("#e0a000")%(decorate:prefix=,suffix=,tag=🏷 ,pointer= → )%Creset%C("normal" "#333333") %C("#9040a0" "" italic)%an <%ae> %>>|(-6)%C("#55aa7f" "" italic)%ad%Creset%C("normal" "#333333") ]----%n%C("#dddddd" "" "bold")%-s%Creset%n%+b%n%C("#666666")%-N%n
+
+[pull]
+    rebase = true
+    verbose = true
+
+[push]
+    default = simple
+
+[rebase]
+    autoSquash = true
+    stat = true
+
+[rerere]
+    enabled = true
+
+[ssh]
+    variant = ssh
+
+[stash]
+    showIncludeUntracked = all
+    showPatch = true
+
+[status]
+    showStash = true
+    submoduleSummary = true
+    showUntrackedFiles = true
+
+[tag]
+    forceSignAnnotated = true
+    gpgSign = true
+    sort = version:refname
+
+[user]
+    useConfigOnly = true
+
+[versionsort]
+    suffix = "-alpha" "-beta" "-pre" "-rc"
+
+[worktree]
+    guessRemote = true
+    useRelativePaths = true
+
+# kate: hl INI Files;

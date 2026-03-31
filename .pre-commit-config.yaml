@@ -25,8 +25,8 @@ repos:
       - id: check-case-conflict
       - id: check-executables-have-shebangs
         always_run: true
+      - id: check-json
       - id: check-toml
-      - id: check-yaml
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
@@ -37,38 +37,46 @@ repos:
       - id: git-check
         pass_filenames: false
 
-    # NOTE Read the configuration docs here: http://jorisroovers.github.io/gitlint
-    # NOTE Read the "Conventional Commits" Specification here:
-    # https://www.conventionalcommits.org/en/v1.0.0/#summary
+  # NOTE Read the configuration docs here: http://jorisroovers.github.io/gitlint
+  # NOTE Read the "Conventional Commits" Specification here:
+  # https://www.conventionalcommits.org/en/v1.0.0/#summary
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1
     hooks:
       - id: gitlint
         stages: [commit-msg]
 
-    # NOTE For config options check this: https://editorconfig-checker.github.io
+  # NOTE For config options check this: https://editorconfig-checker.github.io
   - repo: https://github.com/editorconfig-checker/editorconfig-checker
-    rev: v3.6.0
+    rev: v3.6.1
     hooks:
       - id: editorconfig-checker
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         stages: *all
 
-    # NOTE See BUG https://github.com/crate-ci/typos/issues/390
+  # NOTE See BUG https://github.com/crate-ci/typos/issues/390
   - repo: https://github.com/adhtruong/mirrors-typos
-    rev: v1.40.0
+    rev: v1.44.0
     hooks:
       - id: typos
+        # NOTE Override hook-provided args to prevent automatic
+        # fixing of found typos. Let the dev decide what to fix!
+        args: [--force-exclude]
         stages: *all
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
 
   - repo: https://github.com/fsfe/reuse-tool
     rev: v6.2.0

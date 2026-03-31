@@ -1,19 +1,19 @@
 
 #---------------------------------------------------------------------
-# Format for the commit title (the very first line) is the following:
+# The commit title format (the very first line) is as follows:
 #
 # <type>: (If applied, this commit will...) <subject> (max 72 chars)
 #
 # Where `<type>` is one of the following:
 #   - build         = Changes to the build system
-#   - ci            = CI related changes (GH actions, hooks, ...)
+#   - ci            = CI-related changes (GH actions, hooks, ...)
 #   - chore         = Better not to use it! (Conventional Commits compat.)
 #   - docs          = Changes to the documentation/manuals
 #   - feat          = The commit introduces a new feature
 #   - fix           = The commit fixes a bug/regression/typo
-#   - impr          = The commit bring some improvements
+#   - impr          = The commit brings some improvements
 #   - misc          = Other actions
-#   - package       = Changes to the package produced
+#   - package       = Changes to the generated package
 #   - perf          = Changes related to performance/benchmarking
 #   - refactor      = The commit performs a refactoring
 #   - release       = The commit prepares a repo for release
@@ -26,9 +26,9 @@
 #---------------------------------------------------------------------
 # NOTE: Leave the next line empty to separate title from the body
 
-# Explain why this change is being made below... (max 120 chars per line)
+# Explain why this change is being made below... (max 80 chars per line)
 
 
-# Optionally provide links or keys to any relevant tickets, articles or other resources.
+# Optionally provide links or references to any relevant tickets, articles, or other resources.
 
 #---[The diff inserted by Git is shown below]-------------------------

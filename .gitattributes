@@ -10,6 +10,9 @@
 # from possible _header_ markup.
 [attr]doc               conflict-marker-size=79
 
+# Custom attribute to mark Makefiles
+[attr]makefile          text=auto whitespace=-tab-in-indent
+
 # Prevent some VCS related service files to be exported
 .codespellrc            export-ignore
 .editorconfig*          export-ignore
@@ -24,8 +27,6 @@
 # NOTE Tabulation symbols prohibited for all text files by default
 *                       text=auto whitespace=tab-in-indent
 *.md                    doc
-*.rst                   doc
-
-# Pictures are obviously binaries
-*.ico                   binary
-*.png                   binary
+# ... 'cept `Makefile` of course
+*.mk                    makefile
+Makefile                makefile

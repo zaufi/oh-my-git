@@ -1,57 +1,111 @@
 <!--
-SPDX-FileCopyrightText: Alex Turbov <zaufi@pm.me>
+SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# What is This
+# oh-my-git
 
-This is my bare minimum repo used as a template.
+This repository contains my Git configuration and a simple `Makefile` to install it.
 
-## TODO Check List for the new repository
+## What Is In `gitconfig`
 
-- [x] Add the minimal must-have configuration files.
+The configuration is opinionated toward a fast command-line workflow with signed history,
+readable output, and branch-heavy development.
 
-- [ ] Set the `master` (or `main`) branch name in the `.github/workflows/pre-commit-check.yaml`.
+- `core`, `commit`, `format`, `tag`, and `user` enforce signing, sign-offs, and a predictable
+  editing setup.
+- `branch`, `pull`, `rebase`, `fetch`, `push`, `rerere`, and `worktree` favor a rebase-first
+  workflow, automatic pruning, and easier multi-worktree use.
+- `diff`, `merge`, `status`, `stash`, `grep`, `log`, `pretty`, and `pager` improve day-to-day
+  inspection with richer diffs, verbose status, and custom
+  log formats.
+- `color.*`, `blame`, and `versionsort` mostly tune presentation by adding custom colors,
+  recent-line highlighting in blame, and more natural tag sorting.
 
-- [ ] Add your code.
+## Aliases
 
-- [ ] Provide description and introductory section to the `README.md` file.
+### Short command aliases
 
-- [ ] Read the [manual] and edit the `.github/CODEOWNERS` file.
+- `br`: `git branch -vv` for a verbose branch list with upstream tracking info.
+- `ci`: `git commit`.
+- `co`: `git checkout`.
+- `cp`: `git cherry-pick`.
+- `di`: `git diff`.
+- `st`: `git status`.
+- `sub`: `git submodule`.
+- `wt`: `git worktree`.
 
-- [ ] Use the `.gitignore` [properly] -- do not add your IDE-specific files!
+### Shortcuts with built-in options
 
-- [ ] If not yet installed, set the `.github/commit-message.template` as commit message
-      template. Copy it to some place in your `$HOME` directory (recommended is `~/.config/git/templates/`)
-      and execute the command:
+- `cl`: `git clone --recursive`.
+- `cls`: shallow recursive clone with shallow submodules.
+- `cs`: signed commit.
+- `csnv`: signed commit without running hooks.
+- `diw`: word-level diff.
+- `fa`: fetch all remotes, tags, and prune stale refs.
+- `fpush`: force-push with lease protection.
+- `lg`: graph log using the custom compact format.
+- `lgp`: detailed log with stats and patches.
+- `prwt`: prune stale worktrees.
+- `rba`: abort the current rebase.
+- `rbc`: continue the current rebase.
+- `rbs`: signed rebase.
+- `rbsi`: signed interactive rebase.
+- `rh`: hard reset.
+- `sdi`: diff staged changes.
+- `unstage`: unstage selected paths.
+- `sw`: `git switch`.
+- `swn`: create and switch to a new branch.
+- `who`: contributor summary by author.
 
-      git config --global commit.template <path-to-copied-template>
+### Higher-level workflow aliases
 
-  Unlike the name, `--global` means _user_ ;-). To install system-wide use `--system`.
+- `clm`: clone into a `<project>/<main-branch>` layout and install
+  `pre-commit` hooks if a `.pre-commit-config.yaml` file is found in the repo.
+- `cslm`: signed commit that reuses the last edited commit message file. Very helpful when a commit
+  message checking hook refuses the commit.
+- `urls`: list configured remotes and their URLs.
+- `aliases`: list configured Git aliases.
+- `root`: print the repository root path.
+- `amend-last`: amend the last commit with the current index, keeping its message.
+- `edit-last`: amend the last commit message in the configured editor.
+- `push-new-branch`: push the current branch to `origin` and set upstream tracking.
+- `url-aliases`: show configured `url.*.insteadOf` shortcuts.
+- `ls-extensions`: list distinct tracked file extensions in the repository.
+- `worktree-add`: add an existing branch as a sibling worktree and initialize submodules when
+  needed.
+- `wta`: shorter alias for `worktree-add`.
+- `worktree-branch`: create a new branch as a sibling worktree and initialize submodules when
+  needed.
+- `wtb`: shorter alias for `worktree-branch`.
+- `prune-branches`: delete local branches whose upstream is gone after pruning `origin`.
+- `prb`: shorter alias for `prune-branches`.
 
-- [ ] Remove this section ;-)
+### Experimental or less-documented aliases
 
-[manual]: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-[properly]: https://www.pluralsight.com/guides/how-to-use-gitignore-file
+- `fxs`: create a signed fixup commit for a target revision and immediately run an autosquashing
+  interactive rebase.
 
-## How to Contribute
+## Installation
 
-1. Fork a `feature/*` or `bug/*` branch from the `master`.
+By default, `make install` installs `gitconfig` as the system Git config:
 
-2. Avoid doing too much in a single branch. Things unrelated to the current
-   task must be in separate branches and pull requests.
+```console
+make install
+```
 
-3. For every commit, provide a comment describing _what has been done and why_.
+To install it as the user config instead:
 
-4. Test your work locally before opening a pull request.
+```console
+make install user=1
+```
 
-5. Open a pull request. Provide a detailed description giving hints to reviewers on:
-   - what they are going to review;
-   - what was before and why these changes are needed;
-   - maybe a description of some subtle implementation details;
-   - anything else that can help reviewers understand your idea and
-     **spend less time on review**.
+System installs overwrite the destination file directly. User config installs refuse to overwrite
+an existing destination unless `force=1` is set:
 
-6. **Rebase** to `master` performed by the **PR assigner** when review passed.
+```console
+make install user=1 force=1
+```
 
-7. Your feature/fix will appear in the next release.
+`DESTDIR` is also supported for staged installs.
