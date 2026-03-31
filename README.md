@@ -89,7 +89,8 @@ readable output, and branch-heavy development.
 
 ## Installation
 
-By default, `make install` installs `gitconfig` as the system Git config:
+By default, `make install` installs `gitconfig` as the system Git config and places
+`commit-message.template` next to it:
 
 ```console
 make install
@@ -101,8 +102,8 @@ To install it as the user config instead:
 make install user=1
 ```
 
-System installs overwrite the destination file directly. User config installs refuse to overwrite
-an existing destination unless `force=1` is set:
+System installs overwrite both destination files directly. User config installs refuse to
+overwrite an existing destination unless `force=1` is set:
 
 ```console
 make install user=1 force=1

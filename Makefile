@@ -2,8 +2,11 @@
 # SPDX-License-Identifier: CC0-1.0
 
 CONFIG_SOURCE := gitconfig
+TEMPLATE_SOURCE := commit-message.template
+TEMPLATE_NAME := $(notdir $(TEMPLATE_SOURCE))
 SYSTEM_CONFIG := /etc/$(CONFIG_SOURCE)
 CONFIG_DEST := $(SYSTEM_CONFIG)
+TEMPLATE_DEST = $(dir $(CONFIG_DEST))$(TEMPLATE_NAME)
 INSTALL_CMD := install -D -m 0644
 
 # editorconfig-checker-disable
@@ -29,8 +32,14 @@ all:
 	:
 
 install:
-	@if test -n "$(user)" && test -e $(DESTDIR)$(CONFIG_DEST) && test "$(force)" != 1; then \
-	    echo "Refusing to overwrite $(DESTDIR)$(CONFIG_DEST); use force=1 to override." >&2; \
+	@if test -n "$(user)" \
+	  && { test -e $(DESTDIR)$(CONFIG_DEST) || test -e $(DESTDIR)$(TEMPLATE_DEST); } \
+	  && test "$(force)" != 1; then \
+	    echo "Refusing to overwrite $(DESTDIR)$(CONFIG_DEST) or $(DESTDIR)$(TEMPLATE_DEST); use force=1 to override." >&2; \
 	    exit 1; \
 	fi
-	$(INSTALL_CMD) $(CONFIG_SOURCE) $(DESTDIR)$(CONFIG_DEST)
+	$(INSTALL_CMD) $(TEMPLATE_SOURCE) $(DESTDIR)$(TEMPLATE_DEST)
+	@tmp_file=$$(mktemp); \
+	    sed 's|@COMMIT_TEMPLATE@|$(TEMPLATE_DEST)|' $(CONFIG_SOURCE) > "$$tmp_file"; \
+	    $(INSTALL_CMD) "$$tmp_file" $(DESTDIR)$(CONFIG_DEST); \
+	    rm -f "$$tmp_file"

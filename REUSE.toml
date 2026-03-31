@@ -23,3 +23,9 @@ path = "*.json"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Alex Turbov <zaufi@pm.me>"
 SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "commit-message.template"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Alex Turbov <zaufi@pm.me>"
+SPDX-License-Identifier = "CC0-1.0"

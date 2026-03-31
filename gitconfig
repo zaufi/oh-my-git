@@ -323,6 +323,7 @@
     ui = never
 
 [commit]
+    template = @COMMIT_TEMPLATE@
     verbose = 1
 
 [diff]
