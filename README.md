@@ -25,52 +25,58 @@ readable output, and branch-heavy development.
 
 ## Aliases
 
+In the descriptions below, a Git command (verb) may be `emphasized` to hint at the underlying
+command behind the corresponding alias.
+
 ### Short command aliases
 
-- `br`: `git branch -vv` for a verbose branch list with upstream tracking info.
 - `ci`: `git commit`.
 - `co`: `git checkout`.
 - `cp`: `git cherry-pick`.
 - `di`: `git diff`.
 - `st`: `git status`.
 - `sub`: `git submodule`.
+- `sw`: `git switch`.
 - `wt`: `git worktree`.
 
 ### Shortcuts with built-in options
 
+- `br`: `git branch -vv` for a verbose branch list with upstream tracking info.
 - `cl`: `git clone --recursive`.
-- `cls`: shallow recursive clone with shallow submodules.
-- `cs`: signed commit.
-- `csnv`: signed commit without running hooks.
-- `diw`: word-level diff.
-- `fa`: fetch all remotes, tags, and prune stale refs.
-- `fpush`: force-push with lease protection.
-- `lg`: graph log using the custom compact format.
-- `lgp`: detailed log with stats and patches.
-- `prwt`: prune stale worktrees.
-- `rba`: abort the current rebase.
-- `rbc`: continue the current rebase.
-- `rbs`: signed rebase.
-- `rbsi`: signed interactive rebase.
-- `rh`: hard reset.
-- `sdi`: diff staged changes.
+- `cls`: shallow recursive `clone` with shallow submodules
+  (`--recursive --depth 1 --shallow-submodules`).
+- `cs`: signed `commit` (`-S`).
+- `csnv`: signed `commit` without running hooks (`--no-verify`).
+- `diw`: word-level `diff` (`--word-diff`).
+- `fa`: `fetch` all remotes, tags, and prune stale refs.
+- `fpush`: force-`push` with lease protection.
+- `lg`: graph `log` using the custom compact format.
+- `lgp`: detailed `log` with stats and patches.
+- `prwt`: prune stale worktrees. Run after removing some worktrees manually (e.g., with `rm -rf`).
+- `rbs`: signed `rebase`.
+- `rbsi`: signed interactive `rebase`.
+- `rba`: abort the current `rebase`.
+- `rbc`: continue the current `rebase`.
+- `rh`: hard `reset`.
+- `sdi`: `diff` staged changes.
 - `unstage`: unstage selected paths.
-- `sw`: `git switch`.
-- `swn`: create and switch to a new branch.
+- `swn`: create and `switch` to a new branch.
 - `who`: contributor summary by author.
 
 ### Higher-level workflow aliases
 
-- `clm`: clone into a `<project>/<main-branch>` layout and install
-  `pre-commit` hooks if a `.pre-commit-config.yaml` file is found in the repo.
-- `cslm`: signed commit that reuses the last edited commit message file. Very helpful when a commit
-  message checking hook refuses the commit.
+- `clm`: clone into a `<project>/<main-branch>` layout and install `pre-commit` hooks if a
+  `.pre-commit-config.yaml` file is found in the repository. Using `main-branch` as a subdirectory
+  is convenient when working with multiple worktrees, with other development branches placed
+  alongside it under the `<project>/` directory.
+- `cslm`: signed `commit` that reuses the last edited commit message file. Very helpful when a commit
+  message validation hook refuses the commit.
 - `urls`: list configured remotes and their URLs.
 - `aliases`: list configured Git aliases.
 - `root`: print the repository root path.
-- `amend-last`: amend the last commit with the current index, keeping its message.
-- `edit-last`: amend the last commit message in the configured editor.
-- `push-new-branch`: push the current branch to `origin` and set upstream tracking.
+- `amend-last`: `amend` the last commit with the current index, keeping its message.
+- `edit-last`: `amend` the last commit message in the configured editor.
+- `push-new-branch`: `push` the current branch to `origin` and set upstream tracking.
 - `url-aliases`: show configured `url.*.insteadOf` shortcuts.
 - `ls-extensions`: list distinct tracked file extensions in the repository.
 - `worktree-add`: add an existing branch as a sibling worktree and initialize submodules when
@@ -84,13 +90,18 @@ readable output, and branch-heavy development.
 
 ### Experimental or less-documented aliases
 
-- `fxs`: create a signed fixup commit for a target revision and immediately run an autosquashing
-  interactive rebase.
+- `fxs <commit-options> <commit-hash>`: create a signed fixup commit for a target revision, then
+  immediately run an autosquashing interactive rebase.
+
+> [!CAUTION]
+> Use `git fxs -a <commit-hash>` or make sure there are no unstaged changes in the repository when you
+> run it.
+
 
 ## Installation
 
 By default, `make install` installs `gitconfig` as the system Git config and places
-`commit-message.template` next to it:
+`commit-message.template` alongside it:
 
 ```console
 make install
