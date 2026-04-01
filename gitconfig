@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: CC0-1.0
 
 [core]
-    editor = mcedit +1
     autocrlf = input
     whitespace = tab-in-indent,tabwidth=4
-    # pager = bat --paging always --file-name Git
 
 [alias]
     # BEGIN Shorter names for standard commands
@@ -324,11 +322,10 @@
 
 [commit]
     template = @COMMIT_TEMPLATE@
-    verbose = 1
+    verbose = true
 
 [diff]
     colorMoved = dimmed_zebra
-    guitool = kdiff3
     renames = copy
     submodule = log
     wsErrorHighlight = all
@@ -352,9 +349,6 @@
     graphColors = "#909090", "#00557f", "#550000", "#55557f", "#555500", "#aa5500", "#005500"
     decorate = short
     showNotes = true
-
-[merge]
-    guitool = kdiff3
 
 [pager]
     branch = false
