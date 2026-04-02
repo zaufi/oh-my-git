@@ -376,7 +376,7 @@
     variant = ssh
 
 [stash]
-    showIncludeUntracked = all
+    showIncludeUntracked = true
     showPatch = true
 
 [status]
