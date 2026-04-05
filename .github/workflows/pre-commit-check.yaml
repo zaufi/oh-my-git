@@ -17,7 +17,9 @@ concurrency:
   # Cancel all except push to the `master` (or `main`) branch to have always full results
   cancel-in-progress: >-
     ${{
-      !(github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'))
+        github.event_name != 'push' || (
+          github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main'
+        )
     }}
 
 env:
