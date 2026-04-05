@@ -17,6 +17,9 @@ env:
   FORCE_COLOR: 1
   PIP_DISABLE_PIP_VERSION_CHECK: 1
 
+permissions:
+  contents: write
+
 jobs:
   auto-update:
     name: Pre-commit auto-update
