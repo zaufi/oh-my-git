@@ -111,7 +111,12 @@ jobs:
             echo "::group::Checking commit ${commit}"
             echo -e "\033[36m${message}\033[0m"
             echo "::endgroup::"
-            pre-commit run --color=always --hook-stage commit-msg --commit-msg-filename .git/COMMIT_EDITMSG || ec=1
+            pre-commit run \
+              --color=always \
+              --hook-stage commit-msg \
+              --commit-msg-filename \
+              .git/COMMIT_EDITMSG \
+              || ec=1
           done
           exit "${ec}"
         shell: bash
