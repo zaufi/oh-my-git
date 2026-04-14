@@ -30,14 +30,16 @@
     diw = diff --word-diff
     # `fetch-all`
     fa = fetch --all --tags --prune --prune-tags
+    # `fork-point` -- get the commit of a fork point
+    fp = merge-base --fork-point master
     # `push --force`
     fpush = push --force-with-lease --force-if-includes
     # `log` (normal one)
     lg = log --pretty=quick --date=auto:human --graph
     # `log-pretty` -- actually it's a more detailed log w/ changes (doesn't relate to pretty directly anymore)
     lgp = log --pretty=fullDiff --stat -p --date=auto:human --minimal
-    # `fork-point` -- get the commit of a fork point
-    fp = merge-base --fork-point master
+    # Switch to a new branch
+    nb = switch -c
     # `prune-worktree`
     prwt = worktree prune
     # `rebase-abort`
@@ -56,7 +58,6 @@
     # Remove file(s) from stage
     unstage = reset HEAD --
     sw = switch
-    swn = switch -c
     who = shortlog -sne
     wt = worktree
     # END Shorter alases for sub-commands with some of their options
