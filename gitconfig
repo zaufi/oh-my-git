@@ -236,23 +236,29 @@
       | xargs -r git branch -D
     prb = prune-branches                                    # Shorter "legacy" alias
     # ----------------------------
-    # `switch-interctively`
+    # `switch-interactively`
     # ----------------------------
-    #   Use `sys-apps/skim` to display a popup to select a branch to switch
-    #   NOTE Runtime dependency on `sys-apps/skim`
+    #   Use `sys-apps/skim` to display a popup for selecting a branch to switch to
+    #   NOTE Runtime dependency: `sys-apps/skim`
+    #   NOTE Branches already checked out as worktrees are filtered out.
+    #   NOTE The current branch is also filtered out (no need to switch to it ;-)
     swi = "!f() {                                           \
         max=$(tput lines);                                  \
         max=$(( max - 1 ));                                 \
-        bc=$(git branch | wc -l);                           \
+        bc=$(git branch -l | grep -v '^[\\+\\*]' | wc -l);  \
         bc=$(( bc + 5 ));                                   \
         min=$(( bc < max ? bc : max ));                     \
-        git branch -vv --color=always "$@"                  \
-          | sk --ansi                                       \
-                --border rounded                            \
-                --height $min                               \
+        git branch -vv --color=always -l "$@"               \
+          | grep -v '^[\\+\\*]'                             \
+          | sed 's,^\\*,✔,'                                \
+          | sk                                              \
+              --ansi                                        \
+              --border rounded                              \
+              --height $min                                 \
+              --prompt '🔎〉'                               \
           | cut -c 3-                                       \
           | cut -d ' ' -f 1                                 \
-          | xargs -r git switch;                            \
+          | xargs -r --verbose git switch;                  \
     }; f"
     # END Frequently used complex commands
 
