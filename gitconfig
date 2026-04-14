@@ -251,12 +251,12 @@
         git branch -vv --color=always -l "$@"               \
           | grep -v '^[\\+\\*]'                             \
           | sed 's,^\\*,✔,'                                \
+          | cut -c 3-                                       \
           | sk                                              \
               --ansi                                        \
               --border rounded                              \
               --height $min                                 \
               --prompt '🔎〉'                               \
-          | cut -c 3-                                       \
           | cut -d ' ' -f 1                                 \
           | xargs -r --verbose git switch;                  \
     }; f"
