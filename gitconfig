@@ -209,6 +209,7 @@
     # `working-tree-directory`
     # ----------------------------------
     #   Returns a selected working directory. So, a user may call it like `cd $(git wtdir)`
+    #   HINT Add Bash alias: `alias cdwt='cd $(git wtdir)'`
     #   NOTE Runtime dependency on `sys-apps/skim`
     wtdir = "!f() {                                         \
         max=$(tput lines);                                  \
