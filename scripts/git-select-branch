@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+# Select branch names interactively with `sk`; run with `-h` for help.
+
+set -euo pipefail
+
+declare -a skim_options=()
+declare -a branch_lines=()
+declare -i exclude_worktrees=1
+declare -i exclude_current=1
+declare -i exclude_head_refs=1
+
+print_help() {
+    cat <<'EOF'
+git-select-branch [-m] [-w] [-c] [-H] [-h] [--] [git-branch-args...]
+
+Show branches in `sk` (skim) and print the selected branch name or names to stdout.
+
+Options:
+  -m    Enable multi-select mode in `sk` (skim).
+  -w    Keep branches already checked out in other worktrees visible.
+  -c    Keep the current branch visible.
+  -H    Keep symbolic `*/HEAD` refs visible.
+  -h    Show this help text and exit.
+
+Arguments after `--` are passed through to `git branch`. Use this when you want
+to forward option-like arguments such as `-a`:
+
+  git-select-branch -m -- -a
+EOF
+}
+
+filter_branch_lines() {
+    awk                                                   \
+      -v exclude_worktrees="$exclude_worktrees"           \
+      -v exclude_current="$exclude_current"               \
+      -v exclude_head_refs="$exclude_head_refs"           \
+      '                                                   \
+        exclude_worktrees && /^\+/ { next }               \
+        exclude_current && /^\*/ { next }                 \
+        exclude_head_refs && /\/HEAD -> / { next }        \
+        { print substr($0, 3) }                           \
+      '
+}
+
+if [[ ${1:-} == --help ]]; then
+    print_help
+    exit 0
+fi
+
+while getopts ":mwcHh" opt; do
+    case "$opt" in
+        m)
+            skim_options+=(--multi)
+            ;;
+        w)
+            exclude_worktrees=0
+            ;;
+        c)
+            exclude_current=0
+            ;;
+        H)
+            exclude_head_refs=0
+            ;;
+        h)
+            print_help
+            exit 0
+            ;;
+        \?)
+            print_help >&2
+            exit 2
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+declare -i terminal_lines
+declare -i branch_count
+declare -i selector_height
+
+mapfile -t branch_lines < <(git branch -vv --color=always "$@" | filter_branch_lines)
+branch_count=${#branch_lines[@]}
+if (( branch_count == 0 )); then
+    exit 0
+fi
+
+terminal_lines=$(tput lines)
+terminal_lines=$(( terminal_lines - 1 ))
+branch_count=$(( branch_count + 5 ))
+selector_height=$(( branch_count < terminal_lines ? branch_count : terminal_lines ))
+
+printf '%s\n' "${branch_lines[@]}" \
+  | sk "${skim_options[@]}" \
+      --ansi \
+      --border rounded \
+      --height "$selector_height" \
+      --prompt '🔎〉' \
+  | sed 's/[[:space:]].*//'

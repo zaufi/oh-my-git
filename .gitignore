@@ -10,4 +10,4 @@
 # Use `git check-ignore <path>` for debug.
 #
 
-installed/
+build/

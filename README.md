@@ -6,7 +6,8 @@ SPDX-License-Identifier: CC0-1.0
 
 # oh-my-git
 
-This repository contains my Git configuration and a simple `Makefile` to install it.
+This repository contains my Git configuration, helper scripts, and a small CMake-based install
+setup.
 
 ## What Is In `gitconfig`
 
@@ -87,6 +88,10 @@ command behind the corresponding alias.
 - `wtb`: shorter alias for `worktree-branch`.
 - `prune-branches`: delete local branches whose upstream is gone after pruning `origin`.
 - `prb`: shorter alias for `prune-branches`.
+- `select-branch`: interactively choose local branch names and print them to stdout. Pass `-m`
+  to enable multi-select in `sk`; any other arguments are passed to `git branch`.
+- `swi`: interactively choose a local branch and `switch` to it. Pass `-m` to enable multi-select
+  before piping the result into `git switch` one branch at a time.
 
 ### Experimental or less-documented aliases
 
@@ -97,27 +102,44 @@ command behind the corresponding alias.
 > Use `git fxs -a <commit-hash>` or make sure there are no unstaged changes in the repository when you
 > run it.
 
+## Scripts
+
+The repository also installs small helper scripts that support the aliases and can be used directly.
+
+- `git-select-branch`: display branch lines in `sk` (skim), print the selected branch name or names
+  to stdout, and support forwarding branch-selection flags to `git branch` after `--`. It can keep
+  or hide worktree branches, the current branch, and symbolic `*/HEAD` refs via its own options.
 
 ## Installation
 
-By default, `make install` installs `gitconfig` as the system Git config and places
-`commit-message.template` alongside it:
+By default, configuring and installing with CMake installs:
+
+- `gitconfig` as `/usr/local/etc/gitconfig`
+- `commit-message.template` as `/usr/local/etc/commit-message.template`
+- `scripts/git-select-branch` as `/usr/local/libexec/git-select-branch`
 
 ```console
-make install
+cmake -S . -B build
+cmake --install build
 ```
 
-To install it as the user config instead:
+To install under a different prefix, set `CMAKE_INSTALL_PREFIX`:
 
 ```console
-make install user=1
+cmake -S . -B build -DCMAKE_INSTALL_PREFIX="$HOME/.local"
+cmake --install build
 ```
 
-System installs overwrite both destination files directly. User config installs refuse to
-overwrite an existing destination unless `force=1` is set:
+To override individual install directories, pass the usual `GNUInstallDirs` cache entries such as
+`CMAKE_INSTALL_SYSCONFDIR` and `CMAKE_INSTALL_LIBEXECDIR`:
 
 ```console
-make install user=1 force=1
+cmake -S . -B build \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DCMAKE_INSTALL_SYSCONFDIR=/etc \
+  -DCMAKE_INSTALL_LIBEXECDIR=/usr/libexec
+cmake --install build
 ```
 
-`DESTDIR` is also supported for staged installs.
+`DESTDIR` is also supported for staged installs via `cmake --install build --prefix ...` or the
+usual `DESTDIR=/path cmake --install build` flow.

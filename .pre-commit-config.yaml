@@ -82,3 +82,9 @@ repos:
     rev: v6.2.0
     hooks:
       - id: reuse
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        args: [--shell=bash, --color=always]
