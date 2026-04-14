@@ -233,6 +233,25 @@
       | awk '{print $1}'                                    \
       | xargs -r git branch -D
     prb = prune-branches                                    # Shorter "legacy" alias
+    # ----------------------------
+    # `switch-interctively`
+    # ----------------------------
+    #   Use `sys-apps/skim` to display a popup to select a branch to switch
+    #   NOTE Runtime dependency on `sys-apps/skim`
+    swi = "!f() {                                           \
+        max=$(tput lines);                                  \
+        max=$(( max - 1 ));                                 \
+        bc=$(git branch | wc -l);                           \
+        bc=$(( bc + 5 ));                                   \
+        min=$(( bc < max ? bc : max ));                     \
+        git branch -vv --color=always "$@"                  \
+          | sk --ansi                                       \
+                --border rounded                            \
+                --height $min                               \
+          | cut -c 3-                                       \
+          | cut -d ' ' -f 1                                 \
+          | xargs -r git switch;                            \
+    }; f"
     # END Frequently used complex commands
 
     # BEGIN Others not documented yet
