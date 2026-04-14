@@ -36,6 +36,8 @@
     lg = log --pretty=quick --date=auto:human --graph
     # `log-pretty` -- actually it's a more detailed log w/ changes (doesn't relate to pretty directly anymore)
     lgp = log --pretty=fullDiff --stat -p --date=auto:human --minimal
+    # `fork-point` -- get the commit of a fork point
+    fp = merge-base --fork-point master
     # `prune-worktree`
     prwt = worktree prune
     # `rebase-abort`
