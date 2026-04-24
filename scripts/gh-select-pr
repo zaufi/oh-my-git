@@ -42,14 +42,99 @@ done
 shift $((OPTIND - 1))
 
 export CLICOLOR_FORCE=1
+# shellcheck disable=SC2016
 export GH_SELECT_PR_PREVIEW_JQ='
-    def added: "\u001b[32m";
-    def removed: "\u001b[31m";
-    def message: "\u001b[3;90m";
-    def filename: "\u001b[90m";
-    def header: "\u001b[1m";
+    # --- parse OMG_SELECT_PR_COLORS envvar into object ---
+    def parse_colors:
+      (env.OMG_SELECT_PR_COLORS // "")
+      | split(";")
+      | map(select(length > 0))
+      | map(split("=") | select(length == 2))
+      | map({ (.[0]): .[1] })
+      | add // {};
+
+    # --- hex parsing helpers ---
+    def hex_digit:
+      if . >= "0" and . <= "9" then (explode[0] - 48)
+      elif . >= "a" and . <= "f" then (explode[0] - 87)
+      elif . >= "A" and . <= "F" then (explode[0] - 55)
+      else error("invalid hex digit")
+      end;
+
+    def hex_byte:
+      (.[0:1] | hex_digit) * 16 + (.[1:2] | hex_digit);
+
+    def hex_to_rgb:
+      ltrimstr("#")
+      | if length == 6 then
+          [.[0:2], .[2:4], .[4:6]]
+          | map(hex_byte)
+        else
+          error("invalid hex color")
+        end;
+
+    # --- style mapping ---
+    def style_code:
+      if . == "bold" then "1"
+      elif . == "italic" then "3"
+      elif . == "underline" then "4"
+      elif . == "dim" then "2"
+      elif . == "reverse" then "7"
+      else empty
+      end;
+
+    # --- token -> ANSI fragment ---
+    def token_to_ansi:
+      if startswith("#") then
+        (hex_to_rgb | "38;2;\(.[0]);\(.[1]);\(.[2])")
+      elif startswith("bg:#") then
+        (ltrimstr("bg:#") | ("#" + .) | hex_to_rgb
+         | "48;2;\(.[0]);\(.[1]);\(.[2])")
+      elif style_code then
+        style_code
+      elif startswith("\u001b[") then
+        .
+      else
+        empty
+      end;
+
+    # --- build ANSI from "bold+italic+#ffaa00" ---
+    def build_ansi:
+      split("+")
+      | map(select(length > 0))
+      | map(token_to_ansi)
+      | if any(startswith("\u001b[")) then
+          join("")
+        else
+          "\u001b[" + (join(";")) + "m"
+        end;
+
+    # --- load colors once ---
+    parse_colors as $COLORS
+
+    # --- resolver ---
+    | def color($c; $default):
+        ($COLORS[$c] // $default)
+        | if type == "string" and contains("+") then
+            build_ansi
+          elif type == "string" and startswith("#") then
+            (hex_to_rgb | "\u001b[38;2;\(.[0]);\(.[1]);\(.[2])m")
+          elif type == "string" and startswith("bg:#") then
+            (ltrimstr("bg:#") | ("#" + .) | hex_to_rgb
+             | "\u001b[48;2;\(.[0]);\(.[1]);\(.[2])m")
+          else
+            .
+          end;
+
+    # --- color defs ---
+    def added: color("added"; "\u001b[32m");
+    def removed: color("removed"; "\u001b[31m");
+    def message: color("message"; "\u001b[3;90m");
+    def filename: color("filename"; "\u001b[3;90m");
+    def header: color("header"; "\u001b[1m");
     def reset: "\u001b[0m";
 
+    # --- UI blocks ---
     def meta:
         "👤 " + header + "Author:" + reset + " " + .author.login + "\n"
       + "👀 " + header + "Reviewers:" + reset + " " + ([.reviewRequests[].login] | join(", ")) + "\n"
