@@ -31,5 +31,6 @@ install(
     PROGRAMS
         "${CMAKE_CURRENT_SOURCE_DIR}/scripts/gh-select-pr"
         "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-select-branch"
+        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-worktree-checkout"
     DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
 )

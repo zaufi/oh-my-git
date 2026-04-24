@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+#
+# SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+#
+# Check out existing branches as sibling worktrees.
+
+set -euo pipefail
+
+print_help() {
+    cat <<'EOF'
+git-worktree-checkout ([-a|--all] | [--] <branch>...)
+
+Check out existing branches as sibling worktrees and initialize submodules when needed.
+
+Options:
+  -a, --all    Check out all local branches that are not checked out yet.
+  -h, --help   Show this help text and exit.
+EOF
+}
+
+declare -a branches=()
+declare -i checkout_all=0
+declare branch=
+declare common_git_dir=
+declare worktree_dir=
+declare worktree_parent=
+
+while (( $# > 0 )); do
+    case "$1" in
+        -a|--all)
+            if (( $# != 1 )); then
+                printf 'git-worktree-checkout: --all does not accept other arguments\n' >&2
+                exit 2
+            fi
+
+            checkout_all=1
+            ;;
+        -h|--help)
+            print_help
+            exit 0
+            ;;
+        --)
+            shift
+            branches+=("$@")
+            break
+            ;;
+        -*)
+            printf 'git-worktree-checkout: unknown option: %s\n' "$1" >&2
+            print_help >&2
+            exit 2
+            ;;
+        *)
+            branches+=("$1")
+            ;;
+    esac
+
+    shift
+done
+
+if ! (( checkout_all )) && (( ${#branches[@]} == 0 )); then
+    print_help >&2
+    exit 2
+fi
+
+if (( checkout_all )); then
+    mapfile -t branches < <(
+        git for-each-ref '--format=%(refname:short)%09%(worktreepath)' refs/heads \
+          | awk -F '\t' '$2 == "" { print $1 }'
+    )
+fi
+
+common_git_dir=$(git rev-parse --path-format=absolute --git-common-dir)
+worktree_parent=$(dirname "$(dirname "${common_git_dir}")")
+
+if [[ -z ${worktree_parent} ]]; then
+    printf 'git-worktree-checkout: unable to determine worktree parent directory\n' >&2
+    exit 1
+fi
+
+for branch in "${branches[@]}"; do
+    worktree_dir="${worktree_parent}/${branch}"
+
+    git worktree add "${worktree_dir}" "${branch}"
+
+    if [[ -f "${worktree_dir}/.gitsubmodules" ]]; then
+        git -C "${worktree_dir}" submodule update --init
+    fi
+done

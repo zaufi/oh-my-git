@@ -149,34 +149,13 @@
       | sort -u                                             \
       | grep -Ev '^\\.?$'                                   \
       "
-    # --------------
-    # `worktree-add`
-    # --------------
-    #   Checks out an existing branch as a separate worktree.
+    # -------------------
+    # `worktree-checkout`
+    # -------------------
+    #   Checks out existing branches as separate worktrees.
+    #   Pass `--all` to check out every branch not checked out yet.
     #   Submodules are also initialized.
-    worktree-add = "!f() {                                  \
-        if [[ -d .git ]]; then                              \
-            d='../';                                        \
-        elif [[ -f .git ]]; then                            \
-            d=$(< .git);                                    \
-            d=$(                                            \
-                dirname $(                                  \
-                    sed                                     \
-                      -e 's,gitdir: ,,'                     \
-                      -e 's,/.git.*,,'                      \
-                      <<<$d                                 \
-                  )                                         \
-              )/;                                           \
-        fi;                                                 \
-        if [[ -n $d ]]; then                                \
-            git worktree add $d$1 $1;                       \
-            cd $d$1;                                        \
-            if [[ -f .gitsubmodules ]]; then                \
-                git submodule update --init;                \
-            fi;                                             \
-        fi;                                                 \
-    }; f"
-    wta = worktree-add                                      # Shorter "legacy" alias
+    wtco = worktree-checkout                                # Shorter alias
     # -----------------
     # `worktree-branch`
     # -----------------

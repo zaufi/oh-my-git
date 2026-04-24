@@ -80,9 +80,9 @@ command behind the corresponding alias.
 - `push-new-branch`: `push` the current branch to `origin` and set upstream tracking.
 - `url-aliases`: show configured `url.*.insteadOf` shortcuts.
 - `ls-extensions`: list distinct tracked file extensions in the repository.
-- `worktree-add`: add an existing branch as a sibling worktree and initialize submodules when
-  needed.
-- `wta`: shorter alias for `worktree-add`.
+- `worktree-checkout`: add existing branches as sibling worktrees and initialize submodules when
+  needed. Pass `--all` or `-a` to check out every local branch not checked out yet.
+- `wtco`: shorter alias for `worktree-checkout`.
 - `worktree-branch`: create a new branch as a sibling worktree and initialize submodules when
   needed.
 - `wtb`: shorter alias for `worktree-branch`.
@@ -109,6 +109,8 @@ The repository also installs small helper scripts that support the aliases and c
 - `git-select-branch`: display branch lines in `sk` (skim), print the selected branch name or names
   to stdout, and support forwarding branch-selection flags to `git branch` after `--`. It can keep
   or hide worktree branches, the current branch, and symbolic `*/HEAD` refs via its own options.
+- `git-worktree-checkout`: add existing branches as sibling worktrees and initialize submodules
+  when needed. Pass `--all` or `-a` to check out every local branch not checked out yet.
 - `gh-select-pr`: display open GitHub pull requests in `sk` (skim), preview the selected PR body,
   and print the selected PR number to stdout. Extra arguments after `--` are passed to `gh pr list`.
 
@@ -120,6 +122,7 @@ By default, configuring and installing with CMake installs:
 - `commit-message.template` as `/usr/local/etc/commit-message.template`
 - `scripts/gh-select-pr` as `/usr/local/libexec/gh-select-pr`
 - `scripts/git-select-branch` as `/usr/local/libexec/git-select-branch`
+- `scripts/git-worktree-checkout` as `/usr/local/libexec/git-worktree-checkout`
 
 ```console
 cmake -S . -B build
