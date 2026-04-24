@@ -28,6 +28,8 @@ install(
 )
 
 install(
-    PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-select-branch"
+    PROGRAMS
+        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/gh-select-pr"
+        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-select-branch"
     DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
 )

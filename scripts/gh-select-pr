@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#
+# SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+#
+# Select a GitHub pull request interactively with `sk` and print its number.
+#
+
+set -euo pipefail
+
+print_help() {
+    cat <<'EOF'
+gh-select-pr.sh [-h] [--] [gh-pr-list-args...]
+
+Show open GitHub pull requests in `sk` (skim) and print the selected PR number
+to stdout.
+
+Any arguments after `--` are passed through to `gh pr list`. Use this when you
+want to forward option-like arguments:
+
+  gh-select-pr.sh -- --author @me
+EOF
+}
+
+if [[ ${1:-} == --help ]]; then
+    print_help
+    exit 0
+fi
+
+while getopts ":h" opt; do
+    case "$opt" in
+        h)
+            print_help
+            exit 0
+            ;;
+        \?)
+            print_help >&2
+            exit 2
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+export CLICOLOR_FORCE=1
+export GH_SELECT_PR_PREVIEW_JQ='
+    def green: "\u001b[32m";
+    def red: "\u001b[31m";
+    def gray: "\u001b[90m";
+    def bold: "\u001b[1m";
+    def reset: "\u001b[0m";
+
+    def meta:
+        "👤 " + bold + "Author:" + reset + " " + .author.login + "\n"
+      + "👀 " + bold + "Reviewers:" + reset + " " + ([.reviewRequests[].login] | join(", ")) + "\n"
+      + "👥 " + bold + "Assignees:" + reset + " " + ([.assignees[].login] | join(", ")) + "\n"
+      + "🏷  " + bold + "Labels:" + reset + " " + ([.labels[].name] | join(", ")) + "\n";
+
+    def body:
+        "📝 " + bold + "Description:" + reset + "\n"
+      + (if (.body // "") == "" then gray + "(no description)" + reset else .body end) + "\n";
+
+    def stats:
+        " " + bold + "Commits:" + reset + " \(.commits | length)\n"
+      + " " + bold + "Files changed:" + reset + " \(.files | length)\n"
+      + ([.files[] | "   • " + .path + " (" + green + "+\(.additions)" + reset + " " + red + "-\(.deletions)" + reset + ")"] | join("\n"));
+
+    meta + body + "\n" + stats
+'
+
+# shellcheck disable=SC2016
+gh pr list "$@" --json number,title,headRefName,author,updatedAt --template '
+    {{- tablerow
+        ("ᴘʀ" | autocolor "green+b")
+        ("ᴛɪᴛʟᴇ" | autocolor "green+b")
+        ("ʙʀᴀɴᴄʜ" | autocolor "green+b")
+        ("ᴜᴘᴅᴀᴛᴇᴅ" | autocolor "green+b")
+    -}}{{- range . -}}{{- tablerow
+        (printf "#%v" .number | autocolor "black+h")
+        (.title)
+        (.headRefName | autocolor "yellow")
+        (timeago .updatedAt | autocolor "cyan")
+    -}}{{- end -}}
+  ' \
+  | sk \
+      --ansi \
+      --tac \
+      --header "Select PR" \
+      --header-lines 1 \
+      --preview '
+          pr="$(
+              printf "%s" {} \
+            | sed -E "s/\x1B\[[0-9;]*[[:alpha:]]//g; s/^[[:space:]]*#?([0-9]+).*/\1/"
+          )"
+          [[ -n "$pr" ]] || exit 0
+          gh pr view "$pr" --json \
+              number,title,author,reviewRequests,assignees,labels,state,createdAt,updatedAt,commits,files,body \
+              --jq "$GH_SELECT_PR_PREVIEW_JQ"
+        ' \
+      --preview-window up:50%:wrap \
+      --delimiter ' ' \
+      --bind 'ctrl-n:preview-down,ctrl-m:preview-up' \
+  | sed -E 's/^#([0-9]+).*/\1/'

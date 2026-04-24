@@ -109,6 +109,8 @@ The repository also installs small helper scripts that support the aliases and c
 - `git-select-branch`: display branch lines in `sk` (skim), print the selected branch name or names
   to stdout, and support forwarding branch-selection flags to `git branch` after `--`. It can keep
   or hide worktree branches, the current branch, and symbolic `*/HEAD` refs via its own options.
+- `gh-select-pr`: display open GitHub pull requests in `sk` (skim), preview the selected PR body,
+  and print the selected PR number to stdout. Extra arguments after `--` are passed to `gh pr list`.
 
 ## Installation
 
@@ -116,6 +118,7 @@ By default, configuring and installing with CMake installs:
 
 - `gitconfig` as `/usr/local/etc/gitconfig`
 - `commit-message.template` as `/usr/local/etc/commit-message.template`
+- `scripts/gh-select-pr` as `/usr/local/libexec/gh-select-pr`
 - `scripts/git-select-branch` as `/usr/local/libexec/git-select-branch`
 
 ```console
