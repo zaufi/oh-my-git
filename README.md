@@ -83,6 +83,7 @@ command behind the corresponding alias.
 - `worktree-checkout`: add existing branches as sibling worktrees and initialize submodules when
   needed. Pass `--all` or `-a` to check out every local branch not checked out yet.
 - `wtco`: shorter alias for `worktree-checkout`.
+- `wtcoi`: interactively choose local branches and check them out as sibling worktrees.
 - `worktree-branch`: create a new branch as a sibling worktree and initialize submodules when
   needed.
 - `wtb`: shorter alias for `worktree-branch`.

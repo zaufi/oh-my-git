@@ -156,6 +156,11 @@
     #   Pass `--all` to check out every branch not checked out yet.
     #   Submodules are also initialized.
     wtco = worktree-checkout                                # Shorter alias
+    # --------------------------------
+    # `worktree-checkout-interactively`
+    # --------------------------------
+    #   Select one or more branches interactively and check them out as separate worktrees.
+    wtcoi = "!git select-branch -m | xargs -r git worktree-checkout"
     # -----------------
     # `worktree-branch`
     # -----------------
