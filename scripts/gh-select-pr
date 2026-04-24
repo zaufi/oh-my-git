@@ -43,26 +43,27 @@ shift $((OPTIND - 1))
 
 export CLICOLOR_FORCE=1
 export GH_SELECT_PR_PREVIEW_JQ='
-    def green: "\u001b[32m";
-    def red: "\u001b[31m";
-    def gray: "\u001b[90m";
-    def bold: "\u001b[1m";
+    def added: "\u001b[32m";
+    def removed: "\u001b[31m";
+    def message: "\u001b[3;90m";
+    def filename: "\u001b[90m";
+    def header: "\u001b[1m";
     def reset: "\u001b[0m";
 
     def meta:
-        "👤 " + bold + "Author:" + reset + " " + .author.login + "\n"
-      + "👀 " + bold + "Reviewers:" + reset + " " + ([.reviewRequests[].login] | join(", ")) + "\n"
-      + "👥 " + bold + "Assignees:" + reset + " " + ([.assignees[].login] | join(", ")) + "\n"
-      + "🏷  " + bold + "Labels:" + reset + " " + ([.labels[].name] | join(", ")) + "\n";
+        "👤 " + header + "Author:" + reset + " " + .author.login + "\n"
+      + "👀 " + header + "Reviewers:" + reset + " " + ([.reviewRequests[].login] | join(", ")) + "\n"
+      + "👥 " + header + "Assignees:" + reset + " " + ([.assignees[].login] | join(", ")) + "\n"
+      + "🏷  " + header + "Labels:" + reset + " " + ([.labels[].name] | join(", ")) + "\n";
 
     def body:
-        "📝 " + bold + "Description:" + reset + "\n"
-      + (if (.body // "") == "" then gray + "(no description)" + reset else .body end) + "\n";
+        "📝 " + header + "Description:" + reset + "\n"
+      + message + (if (.body // "") == "" then "(no description)" else .body end) + reset + "\n";
 
     def stats:
-        " " + bold + "Commits:" + reset + " \(.commits | length)\n"
-      + " " + bold + "Files changed:" + reset + " \(.files | length)\n"
-      + ([.files[] | "   • " + .path + " (" + green + "+\(.additions)" + reset + " " + red + "-\(.deletions)" + reset + ")"] | join("\n"));
+        " " + header + "Commits:" + reset + " \(.commits | length)\n"
+      + " " + header + "Files changed:" + reset + " \(.files | length)\n"
+      + ([.files[] | "   • " + filename + .path + reset + " (" + added + "+\(.additions)" + reset + " " + removed + "-\(.deletions)" + reset + ")"] | join("\n"));
 
     meta + body + "\n" + stats
 '
