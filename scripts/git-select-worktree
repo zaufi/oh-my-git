@@ -223,8 +223,8 @@ if (( worktree_count == 0 )); then
 fi
 
 terminal_lines=${LINES:-$(tput lines)}
-terminal_lines=$(( terminal_lines - 1 ))
-worktree_count=$(( worktree_count + 5 ))
+terminal_lines=$(( terminal_lines - 1 ))  # Leave one to not overlap the prompt
+worktree_count=$(( worktree_count + 9 ))  # 9 lines occupied by `sk` TUI ;-)
 selector_height=$(( worktree_count < terminal_lines ? worktree_count : terminal_lines ))
 
 set +e
