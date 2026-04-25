@@ -135,6 +135,9 @@ export GH_SELECT_PR_PREVIEW_JQ='
     def reset: "\u001b[0m";
 
     # --- UI blocks ---
+    def body_text:
+      .body // "" | gsub("[\r\n]+$"; "");
+
     def meta:
         "👤 " + header + "Author:" + reset + " " + .author.login + "\n"
       + "👀 " + header + "Reviewers:" + reset + " " + ([.reviewRequests[].login] | join(", ")) + "\n"
@@ -142,8 +145,10 @@ export GH_SELECT_PR_PREVIEW_JQ='
       + "🏷  " + header + "Labels:" + reset + " " + ([.labels[].name] | join(", ")) + "\n";
 
     def body:
+      body_text as $body
+      |
         "📝 " + header + "Description:" + reset + "\n"
-      + message + (if (.body // "") == "" then "(no description)" else .body end) + reset + "\n";
+      + message + (if $body == "" then "(no description)" else $body end) + reset + "\n";
 
     def stats:
         " " + header + "Commits:" + reset + " \(.commits | length)\n"
