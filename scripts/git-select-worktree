@@ -1,0 +1,255 @@
+#!/usr/bin/env bash
+#
+# SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+#
+# Select a worktree directory interactively with `sk`; run with `-h` for help.
+#
+
+set -euo pipefail
+
+print_help() {
+    cat <<'EOF'
+git-select-worktree [-m|--multi] [--header <text>] [-h|--help]
+
+Show worktrees in `sk` (skim) and print the selected worktree directory to stdout.
+This is convenient for shell aliases such as:
+
+  alias cdwt='cd $(git select-worktree)'
+
+Options:
+  -m, --multi      Enable multi-select mode in `sk` (skim).
+  --header <text>  Set the `sk` header text.
+  -h, --help       Show this help text and exit.
+EOF
+}
+
+pad_right_by_width() {
+    local value=${1}
+    local -i value_width=${2}
+    local -i width=${3}
+    local -i padding=$((width - value_width))
+
+    printf '%s' "${value}"
+    if (( padding > 0 )); then
+        printf '%*s' "${padding}" ''
+    fi
+}
+
+pad_right() {
+    local value=${1}
+    local -i width=${2}
+
+    pad_right_by_width "${value}" "${#value}" "${width}"
+}
+
+append_worktree() {
+    local path=${1}
+    local branch=${2}
+    local clean_color=${3}
+    local dirty_color=${4}
+    local detached_color=${5}
+    local -n paths_ref=${6}
+    local -n branches_ref=${7}
+    local -n branch_colors_ref=${8}
+    local -n max_path_length_ref=${9}
+    local -n max_branch_length_ref=${10}
+    local branch_color=
+
+    if [[ -z ${path} ]]; then
+        return
+    fi
+
+    if [[ -z ${branch} ]]; then
+        branch=-
+    fi
+
+    if [[ ${branch} == detached ]]; then
+        branch_color=${detached_color}
+    elif [[ -n $(git -C "${path}" status --porcelain) ]]; then
+        branch_color=${dirty_color}
+    else
+        branch_color=${clean_color}
+    fi
+
+    paths_ref+=("${path}")
+    branches_ref+=("${branch}")
+    branch_colors_ref+=("${branch_color}")
+
+    if (( ${#path} > max_path_length_ref )); then
+        max_path_length_ref=${#path}
+    fi
+
+    if (( ${#branch} > max_branch_length_ref )); then
+        max_branch_length_ref=${#branch}
+    fi
+}
+
+format_worktrees() {
+    declare -r branch_header=ʙʀᴀɴᴄʜ
+    declare -r header_style=$'\033[1;32m'
+    declare -r cyan=$'\033[36m'
+    declare -r green=$'\033[32m'
+    declare -r path_header=ᴘᴀᴛʜ
+    declare -ri path_header_width=4
+    declare -r red=$'\033[31m'
+    declare -r reset=$'\033[0m'
+    declare -r yellow=$'\033[33m'
+    declare -ri branch_header_width=6
+    declare branch=
+    declare index=
+    declare line=
+    declare path=
+    declare -a branches=()
+    declare -a paths=()
+    declare -a branch_colors=()
+    declare -i max_branch_length=${branch_header_width}
+    declare -i max_path_length=${path_header_width}
+
+    while IFS= read -r line; do
+        if [[ -z ${line} ]]; then
+            append_worktree \
+                "${path}" \
+                "${branch}" \
+                "${green}" \
+                "${yellow}" \
+                "${red}" \
+                paths \
+                branches \
+                branch_colors \
+                max_path_length \
+                max_branch_length
+            path=
+            branch=
+            continue
+        fi
+
+        case "${line}" in
+            "worktree "*)
+                path=${line#worktree }
+                ;;
+            "branch "*)
+                branch=${line#branch }
+                branch=${branch#refs/heads/}
+                ;;
+            detached)
+                branch=detached
+                ;;
+        esac
+    done
+
+    append_worktree \
+        "${path}" \
+        "${branch}" \
+        "${green}" \
+        "${yellow}" \
+        "${red}" \
+        paths \
+        branches \
+        branch_colors \
+        max_path_length \
+        max_branch_length
+
+    printf '\t%s%s  %s%s\n' \
+        "${header_style}" "$(pad_right_by_width "${path_header}" "${path_header_width}" "${max_path_length}")" \
+        "$(pad_right_by_width "${branch_header}" "${branch_header_width}" "${max_branch_length}")" "${reset}"
+
+    for index in "${!paths[@]}"; do
+        printf '%s\t%s%s%s  %s%s%s\n' \
+            "${paths[${index}]}" \
+            "${cyan}" "$(pad_right "${paths[${index}]}" "${max_path_length}")" "${reset}" \
+            "${branch_colors[${index}]}" "$(pad_right "${branches[${index}]}" "${max_branch_length}")" "${reset}"
+    done
+}
+
+declare -a skim_options=()
+declare -i multi_select=0
+declare selector_header=
+declare parsed_options=
+
+if ! parsed_options=$(getopt --options mh --longoptions multi,header:,help --name git-select-worktree -- "${@}"); then
+    print_help >&2
+    exit 2
+fi
+eval set -- "${parsed_options}"
+
+while (( ${#} > 0 )); do
+    case "${1}" in
+        -m|--multi)
+            skim_options+=(-m)
+            multi_select=1
+            shift
+            ;;
+        --header)
+            selector_header=${2}
+            shift 2
+            ;;
+        -h|--help)
+            print_help
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+if (( ${#} > 0 )); then
+    printf 'git-select-worktree: unexpected argument: %s\n' "${1}" >&2
+    print_help >&2
+    exit 2
+fi
+
+if [[ -z ${selector_header} ]]; then
+    if (( multi_select )); then
+        selector_header=' Select work trees'
+    else
+        selector_header=' Select a work tree'
+    fi
+fi
+
+declare -i terminal_lines
+declare -i worktree_count
+declare -i selector_height
+declare selector_output=
+declare -i selector_status
+declare -a worktree_lines=()
+
+mapfile -t worktree_lines < <(git worktree list --porcelain | format_worktrees)
+worktree_count=$((${#worktree_lines[@]} - 1))
+if (( worktree_count == 0 )); then
+    exit 0
+fi
+
+terminal_lines=${LINES:-$(tput lines)}
+terminal_lines=$(( terminal_lines - 1 ))
+worktree_count=$(( worktree_count + 5 ))
+selector_height=$(( worktree_count < terminal_lines ? worktree_count : terminal_lines ))
+
+set +e
+selector_output=$(
+    printf '%s\n' "${worktree_lines[@]}" \
+      | sk "${skim_options[@]}" \
+          --ansi \
+          --border rounded \
+          --height "${selector_height}" \
+          --delimiter $'\t' \
+          --header-lines 1 \
+          --header "${selector_header}" \
+          --bind 'ctrl-q:ignore' \
+          --nth 1 \
+          --with-nth 2
+)
+selector_status=${?}
+set -e
+
+if (( selector_status == 130 )); then
+    exit 0
+fi
+
+if (( selector_status != 0 )); then
+    exit "${selector_status}"
+fi
+
+cut -f 1 <<< "${selector_output}"

@@ -87,6 +87,10 @@ command behind the corresponding alias.
 - `worktree-branch`: create a new branch as a sibling worktree and initialize submodules when
   needed.
 - `wtb`: shorter alias for `worktree-branch`.
+- `select-worktree`: interactively choose a worktree and print its directory to stdout. It colors
+  each branch by clean/dirty status. Pass `-m` to enable multi-select in `sk`, or `--header <text>`
+  to set the `sk` header.
+- `wtdir`: shorter legacy alias for `select-worktree`.
 - `prune-branches`: delete local branches whose upstream is gone after pruning `origin`.
 - `prb`: shorter alias for `prune-branches`.
 - `select-branch`: interactively choose local branch names and print them to stdout. Pass `-m`
@@ -110,6 +114,9 @@ The repository also installs small helper scripts that support the aliases and c
 - `git-select-branch`: display branch lines in `sk` (skim), print the selected branch name or names
   to stdout, and support forwarding branch-selection flags to `git branch` after `--`. It can keep
   or hide worktree branches, the current branch, and symbolic `*/HEAD` refs via its own options.
+- `git-select-worktree`: display worktrees in `sk` (skim), coloring branches by clean/dirty status,
+  and print the selected worktree directory or directories to stdout. Pass `-m` to enable
+  multi-select, or `--header <text>` to set the `sk` header.
 - `git-worktree-checkout`: add existing branches as sibling worktrees and initialize submodules
   when needed. Pass `--all` or `-a` to check out every local branch not checked out yet.
 - `gh-select-pr`: display open GitHub pull requests in `sk` (skim), preview the selected PR body,
@@ -123,6 +130,7 @@ By default, configuring and installing with CMake installs:
 - `commit-message.template` as `/usr/local/etc/commit-message.template`
 - `scripts/gh-select-pr` as `/usr/local/libexec/gh-select-pr`
 - `scripts/git-select-branch` as `/usr/local/libexec/git-select-branch`
+- `scripts/git-select-worktree` as `/usr/local/libexec/git-select-worktree`
 - `scripts/git-worktree-checkout` as `/usr/local/libexec/git-worktree-checkout`
 
 ```console

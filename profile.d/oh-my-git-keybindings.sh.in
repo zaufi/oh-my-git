@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Alex Turbov <i.zaufi@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+
+_omg_cd_to_work_tree() {
+    local selected_dir
+    selected_dir="$("@CMAKE_INSTALL_FULL_LIBEXECDIR@/git-select-worktree")" || return
+    [[ -d "${selected_dir}" ]] || return
+
+    pushd "${selected_dir}" >/dev/null 2>&1 || return
+}
+
+# Ctrl-G: Select a worktree and change into it
+bind '"\C-g": "\C-e \C-a\C-k _omg_cd_to_work_tree\C-m\C-y\b"'
+
+# kate: hl bash;

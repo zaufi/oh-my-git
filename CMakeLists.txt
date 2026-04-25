@@ -16,21 +16,28 @@ set(CMAKE_SIZEOF_VOID_P 8)
 include(GNUInstallDirs)
 
 configure_file(gitconfig gitconfig @ONLY)
+configure_file(profile.d/oh-my-git-keybindings.sh.in profile.d/oh-my-git-keybindings.sh @ONLY)
 
 install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/gitconfig"
     DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}"
-)
+  )
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/profile.d/oh-my-git-keybindings.sh"
+    DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/profile.d"
+  )
 
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/commit-message.template"
     DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}"
-)
+  )
 
 install(
     PROGRAMS
         "${CMAKE_CURRENT_SOURCE_DIR}/scripts/gh-select-pr"
         "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-select-branch"
+        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-select-worktree"
         "${CMAKE_CURRENT_SOURCE_DIR}/scripts/git-worktree-checkout"
     DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}"
-)
+  )

@@ -190,24 +190,12 @@
     }; f"
     wtb = worktree-branch                                   # Shorter "legacy" alias
     # ----------------------------------
-    # `working-tree-directory`
+    # `select-worktree`
     # ----------------------------------
-    #   Returns a selected working directory. So, a user may call it like `cd $(git wtdir)`
-    #   HINT Add Bash alias: `alias cdwt='cd $(git wtdir)'`
+    #   Returns a selected worktree directory. So, a user may call it like `cd $(git select-worktree)`
+    #   HINT Add Bash alias: `alias cdwt='cd $(git select-worktree)'`
     #   NOTE Runtime dependency on `sys-apps/skim`
-    wtdir = "!f() {                                         \
-        max=$(tput lines);                                  \
-        max=$(( max - 1 ));                                 \
-        bc=$(git worktree list | wc -l);                    \
-        bc=$(( bc + 5 ));                                   \
-        min=$(( bc < max ? bc : max ));                     \
-        git worktree list -v                                \
-          | sk --ansi                                       \
-                --border rounded                            \
-                --height $min                               \
-                --nth -1                                    \
-          | cut -d ' ' -f 1;                                \
-    }; f"
+    wtdir = select-worktree                                 # Shorter "legacy" alias
     # -----------------
     # `prune-branches`
     # -----------------
