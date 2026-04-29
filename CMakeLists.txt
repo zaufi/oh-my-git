@@ -15,6 +15,14 @@ project(
 set(CMAKE_SIZEOF_VOID_P 8)
 include(GNUInstallDirs)
 
+cmake_path(
+    APPEND CMAKE_INSTALL_FULL_SYSCONFDIR git
+    OUTPUT_VARIABLE COMMIT_MESSAGE_TEMPLATE_INSTALL_DIR
+  )
+cmake_path(
+    APPEND COMMIT_MESSAGE_TEMPLATE_INSTALL_DIR commit-message.template
+    OUTPUT_VARIABLE COMMIT_MESSAGE_TEMPLATE
+  )
 configure_file(gitconfig gitconfig @ONLY)
 configure_file(profile.d/oh-my-git-keybindings.sh.in profile.d/oh-my-git-keybindings.sh @ONLY)
 
@@ -30,7 +38,7 @@ install(
 
 install(
     FILES "${CMAKE_CURRENT_SOURCE_DIR}/commit-message.template"
-    DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}"
+    DESTINATION "${COMMIT_MESSAGE_TEMPLATE_INSTALL_DIR}"
   )
 
 install(
