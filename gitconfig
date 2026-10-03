@@ -299,6 +299,14 @@
     error = "#d05030"
     success = "#20ff70"
 
+[color "selectWorktree"]
+    # Used by `git select-worktree`; uncomment to override the defaults shown
+    # header = green bold
+    # path = cyan
+    # clean = green
+    # dirty = yellow
+    # detached = red
+
 [color "status"]
     # header = "" ""
     added = "#20ff70"

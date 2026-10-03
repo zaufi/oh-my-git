@@ -8,6 +8,11 @@
 
 set -euo pipefail
 
+if (( BASH_VERSINFO[0] < 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] < 3) )); then
+    printf 'git-select-worktree: Bash 5.3 or newer is required (found %s)\n' "${BASH_VERSION}" >&2
+    exit 1
+fi
+
 print_help() {
     cat <<'EOF'
 git-select-worktree [-m|--multi] [--prompt <text>] [-h|--help]
@@ -21,19 +26,24 @@ Options:
   -m, --multi      Enable multi-select mode in `sk` (skim).
   --prompt <text>  Set the `sk` prompt text.
   -h, --help       Show this help text and exit.
+
+Colors (any Git color value, e.g. `"#e0a040" "" italic`):
+  color.selectWorktree.header    Header line (default: bold green).
+  color.selectWorktree.path      Worktree path (default: cyan).
+  color.selectWorktree.clean     Branch of a clean worktree (default: green).
+  color.selectWorktree.dirty     Branch of a dirty worktree (default: yellow).
+  color.selectWorktree.detached  Detached HEAD (default: red).
 EOF
 }
 
+# NOTE The `pad_right*` functions set `REPLY`, so call them as `${| pad_right …; }`.
 pad_right_by_width() {
     local value=${1}
     local -i value_width=${2}
     local -i width=${3}
     local -i padding=$((width - value_width))
 
-    printf '%s' "${value}"
-    if (( padding > 0 )); then
-        printf '%*s' "${padding}" ''
-    fi
+    printf -v REPLY '%s%*s' "${value}" $(( padding > 0 ? padding : 0 )) ''
 }
 
 pad_right() {
@@ -66,7 +76,7 @@ append_worktree() {
 
     if [[ ${branch} == detached ]]; then
         branch_color=${detached_color}
-    elif [[ -n $(git -C "${path}" status --porcelain) ]]; then
+    elif [[ -n ${ git -C "${path}" status --porcelain; } ]]; then
         branch_color=${dirty_color}
     else
         branch_color=${clean_color}
@@ -87,14 +97,9 @@ append_worktree() {
 
 format_worktrees() {
     declare -r branch_header=ʙʀᴀɴᴄʜ
-    declare -r header_style=$'\033[1;32m'
-    declare -r cyan=$'\033[36m'
-    declare -r green=$'\033[32m'
     declare -r path_header=ᴘᴀᴛʜ
     declare -ri path_header_width=4
-    declare -r red=$'\033[31m'
     declare -r reset=$'\033[0m'
-    declare -r yellow=$'\033[33m'
     declare -ri branch_header_width=6
     declare branch=
     declare index=
@@ -111,9 +116,9 @@ format_worktrees() {
             append_worktree \
                 "${path}" \
                 "${branch}" \
-                "${green}" \
-                "${yellow}" \
-                "${red}" \
+                "${clean_color}" \
+                "${dirty_color}" \
+                "${detached_color}" \
                 paths \
                 branches \
                 branch_colors \
@@ -141,9 +146,9 @@ format_worktrees() {
     append_worktree \
         "${path}" \
         "${branch}" \
-        "${green}" \
-        "${yellow}" \
-        "${red}" \
+        "${clean_color}" \
+        "${dirty_color}" \
+        "${detached_color}" \
         paths \
         branches \
         branch_colors \
@@ -151,14 +156,14 @@ format_worktrees() {
         max_branch_length
 
     printf '\t%s%s  %s%s\n' \
-        "${header_style}" "$(pad_right_by_width "${path_header}" "${path_header_width}" "${max_path_length}")" \
-        "$(pad_right_by_width "${branch_header}" "${branch_header_width}" "${max_branch_length}")" "${reset}"
+        "${header_color}" "${| pad_right_by_width "${path_header}" "${path_header_width}" "${max_path_length}"; }" \
+        "${| pad_right_by_width "${branch_header}" "${branch_header_width}" "${max_branch_length}"; }" "${reset}"
 
     for index in "${!paths[@]}"; do
         printf '%s\t%s%s%s  %s%s%s\n' \
             "${paths[${index}]}" \
-            "${cyan}" "$(pad_right "${paths[${index}]}" "${max_path_length}")" "${reset}" \
-            "${branch_colors[${index}]}" "$(pad_right "${branches[${index}]}" "${max_branch_length}")" "${reset}"
+            "${path_color}" "${| pad_right "${paths[${index}]}" "${max_path_length}"; }" "${reset}" \
+            "${branch_colors[${index}]}" "${| pad_right "${branches[${index}]}" "${max_branch_length}"; }" "${reset}"
     done
 }
 
@@ -167,7 +172,7 @@ declare -i multi_select=0
 declare selector_prompt=
 declare parsed_options=
 
-if ! parsed_options=$(getopt --options mh --longoptions multi,prompt:,help --name git-select-worktree -- "${@}"); then
+if ! parsed_options=${ getopt --options mh --longoptions multi,prompt:,help --name git-select-worktree -- "${@}"; }; then
     print_help >&2
     exit 2
 fi
@@ -181,7 +186,7 @@ while (( ${#} > 0 )); do
             shift
             ;;
         --prompt)
-            selector_prompt=${2}
+            selector_prompt="${2}"
             shift 2
             ;;
         -h|--help)
@@ -209,6 +214,19 @@ if [[ -z ${selector_prompt} ]]; then
     fi
 fi
 
+declare header_color=
+declare path_color=
+declare clean_color=
+declare dirty_color=
+declare detached_color=
+
+# NOTE Read colors here, not in `format_worktrees`, so an invalid value aborts the script.
+header_color=${ git config --get-color color.selectWorktree.header 'bold green'; }
+path_color=${ git config --get-color color.selectWorktree.path cyan; }
+clean_color=${ git config --get-color color.selectWorktree.clean green; }
+dirty_color=${ git config --get-color color.selectWorktree.dirty yellow; }
+detached_color=${ git config --get-color color.selectWorktree.detached red; }
+
 declare -i terminal_lines
 declare -i worktree_count
 declare -i selector_height
@@ -222,13 +240,13 @@ if (( worktree_count == 0 )); then
     exit 0
 fi
 
-terminal_lines=${LINES:-$(tput lines)}
+terminal_lines=${LINES:-${ tput lines; }}
 terminal_lines=$(( terminal_lines - 1 ))  # Leave one to not overlap the prompt
 worktree_count=$(( worktree_count + 6 ))  # 6 lines occupied by `sk` TUI ;-)
 selector_height=$(( worktree_count < terminal_lines ? worktree_count : terminal_lines ))
 
 set +e
-selector_output=$(
+selector_output=${
     printf '%s\n' "${worktree_lines[@]}" \
       | sk "${skim_options[@]}" \
           --ansi \
@@ -240,7 +258,7 @@ selector_output=$(
           --bind 'ctrl-q:ignore' \
           --nth 1 \
           --with-nth 2
-)
+}
 selector_status=${?}
 set -e
 
