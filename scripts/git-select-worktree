@@ -10,7 +10,7 @@ set -euo pipefail
 
 print_help() {
     cat <<'EOF'
-git-select-worktree [-m|--multi] [--header <text>] [-h|--help]
+git-select-worktree [-m|--multi] [--prompt <text>] [-h|--help]
 
 Show worktrees in `sk` (skim) and print the selected worktree directory to stdout.
 This is convenient for shell aliases such as:
@@ -19,7 +19,7 @@ This is convenient for shell aliases such as:
 
 Options:
   -m, --multi      Enable multi-select mode in `sk` (skim).
-  --header <text>  Set the `sk` header text.
+  --prompt <text>  Set the `sk` prompt text.
   -h, --help       Show this help text and exit.
 EOF
 }
@@ -164,10 +164,10 @@ format_worktrees() {
 
 declare -a skim_options=()
 declare -i multi_select=0
-declare selector_header=
+declare selector_prompt=
 declare parsed_options=
 
-if ! parsed_options=$(getopt --options mh --longoptions multi,header:,help --name git-select-worktree -- "${@}"); then
+if ! parsed_options=$(getopt --options mh --longoptions multi,prompt:,help --name git-select-worktree -- "${@}"); then
     print_help >&2
     exit 2
 fi
@@ -180,8 +180,8 @@ while (( ${#} > 0 )); do
             multi_select=1
             shift
             ;;
-        --header)
-            selector_header=${2}
+        --prompt)
+            selector_prompt=${2}
             shift 2
             ;;
         -h|--help)
@@ -201,11 +201,11 @@ if (( ${#} > 0 )); then
     exit 2
 fi
 
-if [[ -z ${selector_header} ]]; then
+if [[ -z ${selector_prompt} ]]; then
     if (( multi_select )); then
-        selector_header=' Select work trees'
+        selector_prompt=' Select work trees〉'
     else
-        selector_header=' Select a work tree'
+        selector_prompt=' Select a work tree〉'
     fi
 fi
 
@@ -224,7 +224,7 @@ fi
 
 terminal_lines=${LINES:-$(tput lines)}
 terminal_lines=$(( terminal_lines - 1 ))  # Leave one to not overlap the prompt
-worktree_count=$(( worktree_count + 7 ))  # 7 lines occupied by `sk` TUI ;-)
+worktree_count=$(( worktree_count + 6 ))  # 6 lines occupied by `sk` TUI ;-)
 selector_height=$(( worktree_count < terminal_lines ? worktree_count : terminal_lines ))
 
 set +e
@@ -236,7 +236,7 @@ selector_output=$(
           --height "${selector_height}" \
           --delimiter $'\t' \
           --header-lines 1 \
-          --header "${selector_header}" \
+          --prompt "${selector_prompt}" \
           --bind 'ctrl-q:ignore' \
           --nth 1 \
           --with-nth 2

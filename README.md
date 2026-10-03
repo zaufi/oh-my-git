@@ -88,8 +88,8 @@ command behind the corresponding alias.
   needed.
 - `wtb`: shorter alias for `worktree-branch`.
 - `select-worktree`: interactively choose a worktree and print its directory to stdout. It colors
-  each branch by clean/dirty status. Pass `-m` to enable multi-select in `sk`, or `--header <text>`
-  to set the `sk` header.
+  each branch by clean/dirty status. Pass `-m` to enable multi-select in `sk`, or `--prompt <text>`
+  to set the `sk` prompt.
 - `wtdir`: shorter legacy alias for `select-worktree`.
 - `prune-branches`: delete local branches whose upstream is gone after pruning `origin`.
 - `prb`: shorter alias for `prune-branches`.
@@ -116,7 +116,7 @@ The repository also installs small helper scripts that support the aliases and c
   or hide worktree branches, the current branch, and symbolic `*/HEAD` refs via its own options.
 - `git-select-worktree`: display worktrees in `sk` (skim), coloring branches by clean/dirty status,
   and print the selected worktree directory or directories to stdout. Pass `-m` to enable
-  multi-select, or `--header <text>` to set the `sk` header.
+  multi-select, or `--prompt <text>` to set the `sk` prompt.
 - `git-worktree-checkout`: add existing branches as sibling worktrees and initialize submodules
   when needed. Pass `--all` or `-a` to check out every local branch not checked out yet.
 - `gh-select-pr`: display open GitHub pull requests in `sk` (skim), preview the selected PR body,
