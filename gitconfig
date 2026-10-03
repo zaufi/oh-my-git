@@ -34,6 +34,8 @@
     fp = merge-base --fork-point master
     # `push --force`
     fpush = push --force-with-lease --force-if-includes
+    # `fixup` a commit
+    fx = history fixup
     # `log` (normal one)
     lg = log --pretty=quick --date=auto:human --graph
     # `log-pretty` -- actually it's a more detailed log w/ changes (doesn't relate to pretty directly anymore)
@@ -214,13 +216,6 @@
     swi = "!git select-branch -- -l \"$@\" | xargs -r -n 1 --verbose git switch"
     # END Frequently used complex commands
 
-    # BEGIN Others not documented yet
-    # (… candidates for rename or remove ;-)
-    fxs = "!f() { \
-        git commit -S --fixup=${@: -1} ${@:1:$#-1} \
-     && git rebase -S -i --autosquash ${@: -1}^; \
-    }; f"
-    # END Others not documented yet
 
 [blame]
     coloring = highlightRecent
