@@ -156,14 +156,14 @@ format_worktrees() {
         max_branch_length
 
     printf '\t%s%s  %s%s\n' \
-        "${header_color}" "${| pad_right_by_width "${path_header}" "${path_header_width}" "${max_path_length}"; }" \
-        "${| pad_right_by_width "${branch_header}" "${branch_header_width}" "${max_branch_length}"; }" "${reset}"
+        "${header_color}" "${| pad_right_by_width "${branch_header}" "${branch_header_width}" "${max_branch_length}"; }" \
+        "${| pad_right_by_width "${path_header}" "${path_header_width}" "${max_path_length}"; }" "${reset}"
 
     for index in "${!paths[@]}"; do
         printf '%s\t%s%s%s  %s%s%s\n' \
             "${paths[${index}]}" \
-            "${path_color}" "${| pad_right "${paths[${index}]}" "${max_path_length}"; }" "${reset}" \
-            "${branch_colors[${index}]}" "${| pad_right "${branches[${index}]}" "${max_branch_length}"; }" "${reset}"
+            "${branch_colors[${index}]}" "${| pad_right "${branches[${index}]}" "${max_branch_length}"; }" "${reset}" \
+            "${path_color}" "${| pad_right "${paths[${index}]}" "${max_path_length}"; }" "${reset}"
     done
 }
 

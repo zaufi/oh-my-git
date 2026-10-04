@@ -110,6 +110,7 @@ command behind the corresponding alias.
 ## Scripts
 
 The repository also installs small helper scripts that support the aliases and can be used directly.
+All helper scripts require Bash 5.3 or newer.
 
 - `git-select-branch`: display branch lines in `sk` (skim), print the selected branch name or names
   to stdout, and support forwarding branch-selection flags to `git branch` after `--`. It can keep
@@ -117,8 +118,7 @@ The repository also installs small helper scripts that support the aliases and c
 - `git-select-worktree`: display worktrees in `sk` (skim), coloring branches by clean/dirty status,
   and print the selected worktree directory or directories to stdout. Pass `-m` to enable
   multi-select, or `--prompt <text>` to set the `sk` prompt. Colors can be customized via
-  `color.selectWorktree.{header,path,clean,dirty,detached}` Git config keys. Requires Bash 5.3
-  or newer.
+  `color.selectWorktree.{header,path,clean,dirty,detached}` Git config keys.
 - `git-worktree-checkout`: add existing branches as sibling worktrees and initialize submodules
   when needed. Pass `--all` or `-a` to check out every local branch not checked out yet.
 - `gh-select-pr`: display open GitHub pull requests in `sk` (skim), preview the selected PR body,
