@@ -358,13 +358,14 @@
 
 [pretty]
     quick = format:%C("#884444")%h%Creset %Cblue%G?%Creset %C("#e0a000")%(decorate:tag=🏷 ,pointer= → ,prefix=,suffix=:)%Creset %s%>>|(-18)%C("#9040a0" "" italic)%aN%Creset%>>|(-1)%C("#55aa7f" "" italic)%ad%Creset
-    fullDiff = format:%C("normal" "#333333")----[ %C("#884444")%h%Creset%C("normal" "#333333") %Cblue%G?%Creset%C("normal" "#333333") %C("#e0a000")%(decorate:prefix=,suffix=,tag=🏷 ,pointer= → )%Creset%C("normal" "#333333") %C("#9040a0" "" italic)%an <%ae> %>>|(-6)%C("#55aa7f" "" italic)%ad%Creset%C("normal" "#333333") ]----%n%C("#dddddd" "" "bold")%-s%Creset%n%+b%n%C("#666666")%-N%n
+    fullDiff = format:%C("normal" "#333333")----[ %C("#884444")%h%Creset%C("normal" "#333333") %Cblue%G?%Creset%C("normal" "#333333") %C("#e0a000")%(decorate:prefix=,suffix=,tag=🏷 ,pointer= → )%Creset%C("normal" "#333333") %C("#9040a0" "" italic)%an <%ae> %>>|(-6)%C("#55aa7f" "" italic)%ad%Creset%C("normal" "#333333") ]----%n%C("#dddddd" "" "bold")%-s%Creset%n%+b%n%n%C("#666666" "" "italic")%-N%n
 
 [pull]
     rebase = true
     verbose = true
 
 [push]
+    autoSetupRemote = true
     default = simple
 
 [rebase]
